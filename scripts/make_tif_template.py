@@ -10,10 +10,10 @@ def create_template_tif():
     '''Create template file for Svalbard area for use with new rasters'''
     output_fname = 'svalbard_template.tif'
     res     =  100 # 100 meters spatial resolution
-    west    =  225000
-    north   = -970000
-    south   = -1450000
-    east    =  570000
+    west    =  200000
+    north   = -950000
+    south   = -1500000
+    east    =  590000
     height = (abs(south - north) + res)/res
     width = (abs(east - west) + res)/res
 

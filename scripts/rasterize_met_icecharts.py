@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import numpy as np
 import argparse
 
 import geopandas as gpd
@@ -11,14 +12,16 @@ from datetime import datetime as dt
 from rasterio.transform import from_origin
 import netCDF4 as nc
 from netCDF4 import netcdftime
+from netcdftime import utime
 
 class GeoTIFFTemplate(object):
     def __init__(self):
-        self.res = 100
-        self.west    =  225000
-        self.north   = -970000
-        self.south   = -1450000
-        self.east    =  570000
+        self.res     =  100 # 100 meters spatial resolution
+        self.west    =  200000
+        self.north   = -950000
+        self.south   = -1500000
+        self.east    =  590000
+
         self.height = (abs(self.south - self.north) + self.res)/self.res
         self.width = (abs(self.east - self.west) + self.res)/self.res
         self.crs = '+proj=stere +lat_0=90 +lat_ts=90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs'
@@ -26,6 +29,14 @@ class GeoTIFFTemplate(object):
                                      self.north+self.res/2, self.res, self.res)
         self.shape = (self.height, self.width)
  
+
+def get_timestamp_from_filename(fname):
+    '''Parse basename and return cdf time'''
+    basename = os.path.basename(fname)
+    date = dt.strptime(basename, 'ice%Y%m%d.shp')
+    cdftime = utime('days since 2000-01-01')
+    timestamp = cdftime.date2num(date)
+    return timestamp.astype(np.uint16)
 
 def rasterize_layer(convert_to_rast, rst, field, shape=None):
     # this is where we create a generator of geom, value pairs to use in rasterizing
@@ -55,7 +66,7 @@ def create_netcdf_file(fname, shape, crs=None, north=None, west=None):
     # create variables
     root_dst.createVariable('time', 'i4', 
                             dimensions=('time'))
-    root_dst.createVariable('ice_concentration', 'i4', 
+    root_dst.createVariable('ice_concentration', 'u1', 
                             dimensions=('time', 'x', 'y'),
                             zlib=True)
     root_dst.variables['time'].units = 'Days since 2000-01-01'
@@ -77,12 +88,14 @@ if __name__ == '__main__':
     convert_to_rast = gpd.read_file(ifile) 
     convert_to_rast = convert_to_rast.loc[convert_to_rast['ICE_TYPE'] == 'Fast Ice']
     convert_to_rast['Junk'] = 1    
+    convert_to_rast.crs = {'init' :'epsg:4326'}
     if rst.crs != convert_to_rast.crs:
          convert_to_rast = convert_to_rast.to_crs(rst.crs)
     template = GeoTIFFTemplate()
     data = rasterize_layer(convert_to_rast, rst, 'Junk', shape=template.shape)
     out_dst = create_netcdf_file(ofile, data.shape, crs=template.crs,
             west=template.west, north=template.north)
+    timestamp = get_timestamp_from_filename(ifile)
     out_dst.variables['time'][:] = timestamp 
     out_dst.variables['ice_concentration'][0,:,:] = data 
 
