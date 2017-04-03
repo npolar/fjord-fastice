@@ -19,13 +19,13 @@ function shp2nc {
     for SHPFILE in ${INDIR}/icecharts-${YEAR}/ice${YEAR}0[45678]??.shp; do
         NCFILE=${SHPFILE%.*}.nc
 	echo "$(date): Converting $SHPFILE --> $NCFILE"
-	python -W ignore ${BINDIR}/rasterize_fastice.py -i $SHPFILE -o $NCFILE
+	python -W ignore ${BINDIR}/rasterize_fastice -i $SHPFILE -o $NCFILE
     done
     OUTFILE=${INDIR}/icecharts-${YEAR}/merged-icecharts-${YEAR}.nc
     rm $OUTFILE
     cdo mergetime ${INDIR}/icecharts-${YEAR}/ice*nc $OUTFILE
 
-    # python -W ignore ${BINDIR}/count_fastice_days.py -i $OUTFILE -o svalbard-fastice-${YEAR}.tif -t ../templates/svalbard-template.tif
+    # python -W ignore ${BINDIR}/count_fastice_days -i $OUTFILE -o svalbard-fastice-${YEAR}.tif -t ../templates/svalbard-template.tif
     }
 
 shp2nc $1
