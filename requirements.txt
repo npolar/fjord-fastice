@@ -1,0 +1,1 @@
+git+git://github.com/npolar/python-metnocharts.git#egg=metnocharts

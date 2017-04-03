@@ -24,6 +24,8 @@ function shp2nc {
     OUTFILE=${INDIR}/icecharts-${YEAR}/merged-icecharts-${YEAR}.nc
     rm $OUTFILE
     cdo mergetime ${INDIR}/icecharts-${YEAR}/ice*nc $OUTFILE
+
+    # python -W ignore ${BINDIR}/count_fastice_days.py -i $OUTFILE -o svalbard-fastice-${YEAR}.tif -t ../templates/svalbard-template.tif
     }
 
 shp2nc $1
